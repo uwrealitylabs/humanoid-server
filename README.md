@@ -79,7 +79,7 @@ To run the project on `localhost:3000`:
 npm run dev
 ```
 
-You can now test your endpoint by opening your web browser and navigating to `http://localhost:3000/your-endpoint`. Try pasting these into your browser:
+You can now test your endpoint by opening your web browser and navigating to `http://localhost:3000/api/your-endpoint`. Try pasting these into your browser:
 
 - `http://localhost:3000/api/example`
 - `http://localhost:3000/api/example/:id`
