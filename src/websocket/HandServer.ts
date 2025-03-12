@@ -19,10 +19,8 @@ export class HandServer {
 
       ws.on("message", (data: Buffer) => {
         try {
-          const handData: HandData = JSON.parse(data.toString());
-          if (Array.isArray(handData.positions)) {
-            this.broadcast(data, ws);
-          }
+          const jsonData = JSON.parse(data.toString());
+          this.broadcast(JSON.stringify(jsonData), ws);
         } catch (error) {
           console.error("Error processing JSON data:", error);
         }
@@ -37,10 +35,6 @@ export class HandServer {
         console.error("WebSocket error:", error);
         this.clients.delete(ws);
       });
-
-      // Send initial connection success message
-      const jsonSuccess = JSON.stringify({ positions: [] });
-      ws.send(jsonSuccess);
     });
   }
 
