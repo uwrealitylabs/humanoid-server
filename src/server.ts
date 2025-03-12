@@ -1,10 +1,13 @@
 // Entry point for the server
 import app from "./app";
 import config from "./config";
+import { HandServer } from "./websocket/HandServer";
 
-const PORT = config.port || 3000;
+const HTTP_PORT = Number(config.port) || 3000;
+const WS_PORT = Number(config.wsPort) || 3001;
 
-app.listen(PORT, () => {
+// Start HTTP server
+app.listen(HTTP_PORT, () => {
   console.log(`                                                                           
                                                                            
                                                                            
@@ -46,5 +49,11 @@ app.listen(PORT, () => {
                                                                            
                                                                            
                                                                            `);
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`HTTP Server is running on port ${HTTP_PORT}`);
 });
+
+// Start WebSocket server
+const handServer = new HandServer(WS_PORT);
+console.log(
+  `WebSocket server for hand teleoperation is running on port ${WS_PORT}`
+);

@@ -4,3 +4,7 @@ export interface IExample {
   name: string;
   description: string;
 }
+
+export interface WebSocketMessage {
+  handData: number[]; // Array of 17 float values
+}
