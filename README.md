@@ -1,9 +1,18 @@
 # Humanoid Server
 
-This repository hosts backend code for the Humanoid VR teleoperation project. The server is responsible for handling the communication between the VR client and the robot. The app will receive messages from the VR client that encode the shape of your hand using float values, and then forward these messages to the robot. The robot will then use its control systems (built by WATonomous) to move its fingers to match the shape of your hand. In the future, this server must be capable of streaming even more data, such as head tracking information and video feeds, between the VR client and the robot.
+This repository hosts backend code for the Humanoid VR teleoperation project.
+The server is responsible for handling the communication between the VR client
+and the robot. The app will receive messages from the VR client that encode the
+shape of your hand using float values, and then forward these messages to the
+robot. The robot will then use its control systems (built by WATonomous) to move
+its fingers to match the shape of your hand. In the future, this server must be
+capable of streaming even more data, such as head tracking information and video
+feeds, between the VR client and the robot.
 
-- **Current Design**: Built using TypeScript, WebSockets, Express.js, Node.js. Monolith. Goal is to scale using EC2 Auto-Scaling Groups and ALB.
-- **Future Design**: Microservices architecture using Kubernetes, Docker, with consideration to switch to using Go/gRPC for better performance.
+- **Current Design**: Built using TypeScript, WebSockets, Express.js, Node.js.
+  Monolith. Goal is to scale using EC2 Auto-Scaling Groups and ALB.
+- **Future Design**: Microservices architecture using Kubernetes, Docker, with
+  consideration to switch to using Go/gRPC for better performance.
 
 ## Setup
 
@@ -17,6 +26,7 @@ This repository hosts backend code for the Humanoid VR teleoperation project. Th
 
    ```
    PORT=3000
+   WS_PORT=3001
    NODE_ENV=development
    ```
 
@@ -33,15 +43,23 @@ This repository hosts backend code for the Humanoid VR teleoperation project. Th
 - `src/routes/` - Route definitions
 - `src/handlers/` - Request handlers
 - `src/middleware/` - Middleware used for error handling
-- `src/types/` - TypeScript type definitions, for requests, responses, models, etc.
+- `src/types/` - TypeScript type definitions, for requests, responses, models,
+  etc.
 
 ## Adding New Endpoints
 
-Endpoints are URL paths that the server listens on and responds to. We create new endpoints to add new features to our server. To add a new endpoint:
+Endpoints are URL paths that the server listens on and responds to. We create
+new endpoints to add new features to our server. To add a new endpoint:
 
-1. Create a new route file in `src/routes/api/`. This allows you to direct requests to the appropriate handler.
-2. Create a corresponding handler in `src/handlers/`. A handler is a class that contains various methods for handling different HTTP methods. Inside these methods, you write code for what you want to happen when a request is made to that endpoint.
-3. Define any types you need for your requests/responses/models in `src/types/`. We use TypeScript to enforce predictable behavior and to let your IDE give you better hints.
+1. Create a new route file in `src/routes/api/`. This allows you to direct
+   requests to the appropriate handler.
+2. Create a corresponding handler in `src/handlers/`. A handler is a class that
+   contains various methods for handling different HTTP methods. Inside these
+   methods, you write code for what you want to happen when a request is made to
+   that endpoint.
+3. Define any types you need for your requests/responses/models in `src/types/`.
+   We use TypeScript to enforce predictable behavior and to let your IDE give
+   you better hints.
 4. Register your new route in `src/routes/api/index.ts`.
 
 Example of adding a new `users` endpoint (purely for demonstration purposes):
@@ -79,7 +97,8 @@ To run the project on `localhost:3000`:
 npm run dev
 ```
 
-You can now test your endpoint by opening your web browser and navigating to `http://localhost:3000/api/your-endpoint`. Try pasting these into your browser:
+You can now test your endpoint by opening your web browser and navigating to
+`http://localhost:3000/api/your-endpoint`. Try pasting these into your browser:
 
 - `http://localhost:3000/api/example`
 - `http://localhost:3000/api/example/:id`
