@@ -53,7 +53,4 @@ app.listen(HTTP_PORT, () => {
 });
 
 // Start WebSocket server
-const handServer = new HandServer(WS_PORT);
-console.log(
-  `WebSocket server for hand teleoperation is running on port ${WS_PORT}`
-);
+new HandServer(WS_PORT);

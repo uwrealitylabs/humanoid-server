@@ -1,16 +1,13 @@
 import WebSocket, { WebSocketServer } from "ws";
-
-interface HandData {
-  id: number;
-  positions: number[]; // 16 values for hand positions
-}
+import { HandData } from "../types";
 
 export class HandServer {
   private wss: WebSocketServer;
-  private clients: Set<WebSocket> = new Set();
+  private clients: Set<WebSocket>;
 
   constructor(port: number) {
     this.wss = new WebSocketServer({ port });
+    this.clients = new Set();
     this.setupWebSocketServer();
     console.log(`Hand teleoperation WebSocket server started on port ${port}`);
   }
@@ -23,8 +20,7 @@ export class HandServer {
       ws.on("message", (data: Buffer) => {
         try {
           const handData: HandData = JSON.parse(data.toString());
-          if (handData.id !== undefined && Array.isArray(handData.positions)) {
-            this.handleHandData(handData);
+          if (Array.isArray(handData.positions)) {
             this.broadcast(data, ws);
           }
         } catch (error) {
@@ -43,18 +39,9 @@ export class HandServer {
       });
 
       // Send initial connection success message
-      const jsonSuccess = JSON.stringify({ id: -1, positions: [] });
+      const jsonSuccess = JSON.stringify({ positions: [] });
       ws.send(jsonSuccess);
     });
-  }
-
-  private handleHandData(handData: HandData) {
-    // Here you would implement the logic to control the robot's hand
-    // For now, we'll just log the received data
-    console.log(
-      `Received hand data with ${handData.positions.length} values:`,
-      handData
-    );
   }
 
   private broadcast(data: Buffer | string, exclude?: WebSocket) {
@@ -63,9 +50,5 @@ export class HandServer {
         client.send(data);
       }
     });
-  }
-
-  public getConnectedClientsCount(): number {
-    return this.clients.size;
   }
 }

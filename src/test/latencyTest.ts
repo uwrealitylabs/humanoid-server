@@ -1,9 +1,5 @@
 import WebSocket from "ws";
-
-interface HandData {
-  id: number;
-  positions: number[]; // 16 values for hand positions
-}
+import { HandData } from "../types";
 
 class CircularBuffer {
   private buffer: number[];
@@ -43,7 +39,7 @@ class LatencyTest {
   private sender: WebSocket;
   private receiver: WebSocket;
   private messageCount: number = 0;
-  private startTimes: Map<number, number> = new Map();
+  private lastSentTime: number = 0;
   private latencies: CircularBuffer;
   private printInterval: NodeJS.Timeout | null = null;
   private lastPrintTime: number = 0;
@@ -77,17 +73,12 @@ class LatencyTest {
 
     this.sender.on("message", (data) => {
       try {
-        const handData: HandData = JSON.parse(data.toString());
-        const startTime = this.startTimes.get(handData.id);
-        if (startTime) {
-          const latency = performance.now() - startTime;
-          this.latencies.add(latency);
-          this.messageCount++;
-          this.messagesSinceLastPrint++;
-          this.startTimes.delete(handData.id);
-        }
+        const latency = performance.now() - this.lastSentTime;
+        this.latencies.add(latency);
+        this.messageCount++;
+        this.messagesSinceLastPrint++;
       } catch (error) {
-        console.error("Error parsing JSON:", error);
+        console.error("Error processing message:", error);
       }
     });
 
@@ -117,15 +108,11 @@ class LatencyTest {
       clearInterval(this.printInterval);
       this.printInterval = null;
     }
-    this.startTimes.clear();
   }
 
   private generateHandData(): HandData {
-    const positions = Array.from({ length: 16 }, () => Math.random() * 2 - 1);
-    return {
-      id: this.messageCount,
-      positions,
-    };
+    const positions = Array.from({ length: 17 }, () => Math.random() * 2 - 1);
+    return { positions };
   }
 
   private startTest() {
@@ -175,7 +162,7 @@ class LatencyTest {
         }
 
         const handData = this.generateHandData();
-        this.startTimes.set(handData.id, now);
+        this.lastSentTime = now;
         this.sender.send(JSON.stringify(handData));
         this.lastFrameTime = now;
       }

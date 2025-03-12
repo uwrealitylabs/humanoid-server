@@ -5,6 +5,6 @@ export interface IExample {
   description: string;
 }
 
-export interface WebSocketMessage {
-  handData: number[]; // Array of 17 float values
+export interface HandData {
+  positions: number[]; // Array of 17 values representing hand position data
 }
