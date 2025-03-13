@@ -1,7 +1,6 @@
 import WebSocket, { WebSocketServer } from "ws";
-import { HandData } from "../types";
 
-export class HandServer {
+export class RobotStateServer {
   private wss: WebSocketServer;
   private clients: Set<WebSocket>;
 

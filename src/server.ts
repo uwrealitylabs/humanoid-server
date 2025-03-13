@@ -1,7 +1,7 @@
 // Entry point for the server
 import app from "./app";
 import config from "./config";
-import { HandServer } from "./websocket/HandServer";
+import { RobotStateServer } from "./websocket/RobotStateServer";
 
 const HTTP_PORT = Number(config.port) || 3000;
 const WS_PORT = Number(config.wsPort) || 3001;
@@ -53,4 +53,4 @@ app.listen(HTTP_PORT, () => {
 });
 
 // Start WebSocket server
-new HandServer(WS_PORT);
+new RobotStateServer(WS_PORT);
