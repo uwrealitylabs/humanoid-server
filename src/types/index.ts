@@ -4,3 +4,7 @@ export interface IExample {
   name: string;
   description: string;
 }
+
+export interface HandData {
+  positions: number[]; // Array of 17 values representing hand position data
+}
