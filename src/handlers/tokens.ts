@@ -47,4 +47,19 @@ export class TokenHandler {
         
         return !!expiryDate && currentDate < expiryDate;
     }
+
+    public generateShortLivedToken = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const token = this.generateRandomString(28);
+            const expiryDate = new Date();
+            
+            // Set token to expire in 5 seconds
+            expiryDate.setTime(expiryDate.getTime() + 5 * 1000);
+            TokenHandler.tokenMap.set(token, expiryDate);
+            
+            res.status(201).json({ token, expiryDate });
+        } catch (error){
+            res.status(500).json({ error: "Failed to generate token."});
+        }
+    }
 }
