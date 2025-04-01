@@ -8,6 +8,10 @@ const WS_PORT = Number(config.wsPort) || 3001;
 const API_URL = `http://localhost:${HTTP_PORT}/api/tokens`;
 const WS_URL = `ws://localhost:${WS_PORT}`;
 
+// Get client ID from command line arguments or use a default
+const clientId = process.argv[2] || `client-${Math.floor(Math.random() * 1000)}`;
+console.log(`Starting client with ID: ${clientId}`);
+
 interface TokenResponse {
   token: string;
   expiryDate: string;
@@ -31,21 +35,21 @@ type Message = TestMessage | PingMessage;
 
 async function testValidToken(): Promise<void> {
   try {
-    console.log('Getting authentication token...');
-    console.log(`Making request to: ${API_URL}`);
+    console.log(`[${clientId}] Getting authentication token...`);
+    console.log(`[${clientId}] Making request to: ${API_URL}`);
     const response = await fetch(API_URL, { method: 'POST' });
-    console.log(`Response status: ${response.status}`);
+    console.log(`[${clientId}] Response status: ${response.status}`);
     
     if (!response.ok) {
       throw new Error(`Failed to get token: ${response.statusText}`);
     }
     
     const { token } = await response.json() as TokenResponse;
-    console.log(`Token received: ${token}`);
+    console.log(`[${clientId}] Token received: ${token}`);
     
-    console.log('Connecting to WebSocket server...');
-    console.log(`WebSocket URL: ${WS_URL}`);
-    console.log('Headers:', { 'Authorization': `Bearer ${token}` });
+    console.log(`[${clientId}] Connecting to WebSocket server...`);
+    console.log(`[${clientId}] WebSocket URL: ${WS_URL}`);
+    console.log(`[${clientId}] Headers:`, { 'Authorization': `Bearer ${token}` });
     
     const ws = new WebSocket(WS_URL, {
       headers: {
@@ -54,13 +58,13 @@ async function testValidToken(): Promise<void> {
     });
     
     ws.on('open', () => {
-      console.log('Connected to WebSocket server');
+      console.log(`[${clientId}] Connected to WebSocket server`);
       
       const testMessage: TestMessage = { 
         type: 'test', 
-        data: 'Hello from test client' 
+        data: `Hello from ${clientId}` 
       };
-      console.log(`Sending message: ${JSON.stringify(testMessage)}`);
+      console.log(`[${clientId}] Sending message: ${JSON.stringify(testMessage)}`);
       ws.send(JSON.stringify(testMessage));
       
       setInterval(() => {
@@ -68,7 +72,7 @@ async function testValidToken(): Promise<void> {
           type: 'ping', 
           timestamp: new Date().toISOString() 
         };
-        console.log(`Sending: ${JSON.stringify(message)}`);
+        console.log(`[${clientId}] Sending: ${JSON.stringify(message)}`);
         ws.send(JSON.stringify(message));
       }, 5000);
     });
@@ -76,30 +80,30 @@ async function testValidToken(): Promise<void> {
     ws.on('message', (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString()) as Message;
-        console.log(`Received: ${JSON.stringify(message)}`);
+        console.log(`[${clientId}] Received: ${JSON.stringify(message)}`);
       } catch (error) {
-        console.log(`Received raw data: ${data}`);
+        console.log(`[${clientId}] Received raw data: ${data}`);
       }
     });
     
     ws.on('error', (error: Error) => {
-      console.error(`WebSocket error: ${error.message}`);
-      console.error('Error details:', error);
+      console.error(`[${clientId}] WebSocket error: ${error.message}`);
+      console.error(`[${clientId}] Error details:`, error);
     });
     
     ws.on('close', (code: number, reason: string) => {
-      console.log(`Disconnected: Code ${code}`);
+      console.log(`[${clientId}] Disconnected: Code ${code}`);
     });
     
     process.on('SIGINT', () => {
-      console.log('Closing connection and exiting...');
+      console.log(`[${clientId}] Closing connection and exiting...`);
       ws.close();
       process.exit(0);
     });
     
   } catch (error) {
-    console.error('Test failed with error:', error);
-    console.error('Error details:', error instanceof Error ? error.stack : String(error));
+    console.error(`[${clientId}] Test failed with error:`, error);
+    console.error(`[${clientId}] Error details:`, error instanceof Error ? error.stack : String(error));
     process.exit(1);
   }
 }
@@ -108,9 +112,9 @@ async function testInvalidToken(): Promise<void> {
   try {
     const invalidToken = "humanoid_token_invalid12345";
     
-    console.log('Testing with invalid token...');
-    console.log(`WebSocket URL: ${WS_URL}`);
-    console.log('Headers:', { 'Authorization': `Bearer ${invalidToken}` });
+    console.log(`[${clientId}] Testing with invalid token...`);
+    console.log(`[${clientId}] WebSocket URL: ${WS_URL}`);
+    console.log(`[${clientId}] Headers:`, { 'Authorization': `Bearer ${invalidToken}` });
     
     const ws = new WebSocket(WS_URL, {
       headers: {
@@ -119,18 +123,18 @@ async function testInvalidToken(): Promise<void> {
     });
     
     ws.on('open', () => {
-      console.log('WARNING: Connected with invalid token! Authentication is not working properly.');
+      console.log(`[${clientId}] WARNING: Connected with invalid token! Authentication is not working properly.`);
     });
     
     ws.on('error', (error: Error) => {
-      console.log('Received expected error with invalid token:', error.message);
+      console.log(`[${clientId}] Received expected error with invalid token:`, error.message);
     });
     
     ws.on('close', (code: number, reason: string) => {
       if (code === 1006 || code === 1000) {
-        console.log('Authentication working correctly: Invalid token was rejected');
+        console.log(`[${clientId}] Authentication working correctly: Invalid token was rejected`);
       }
-      console.log(`Disconnected: Code ${code}`);
+      console.log(`[${clientId}] Disconnected: Code ${code}`);
     });
     
     setTimeout(() => {
@@ -140,20 +144,20 @@ async function testInvalidToken(): Promise<void> {
     }, 5000);
     
   } catch (error) {
-    console.error('Invalid token test error:', error);
+    console.error(`[${clientId}] Invalid token test error:`, error);
   }
 }
 
 async function runTests(): Promise<void> {
-  console.log('Starting WebSocket test client...');
-  console.log('\n--- TESTING INVALID TOKEN ---');
+  console.log(`Starting WebSocket test client with ID: ${clientId}...`);
+  console.log(`\n--- TESTING INVALID TOKEN (${clientId}) ---`);
   await testInvalidToken();
 
   await new Promise(resolve => setTimeout(resolve, 3000));
   
-  console.log('\n--- TESTING VALID TOKEN ---');
+  console.log(`\n--- TESTING VALID TOKEN (${clientId}) ---`);
   await testValidToken().catch(error => {
-    console.error('Unhandled error:', error);
+    console.error(`[${clientId}] Unhandled error:`, error);
     process.exit(1);
   });
 }
