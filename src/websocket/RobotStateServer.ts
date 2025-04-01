@@ -30,7 +30,7 @@ export class RobotStateServer {
     const authHeader = request.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')){
-      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.write('HTTP/1.1 401 Unauthorized\r\n-Close-Reason: No token provided\r\n\r\n');
       socket.destroy();
       return;
     }
@@ -43,7 +43,7 @@ export class RobotStateServer {
         this.wss.emit('connection', ws, request);
       });
     } else {
-      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.write('HTTP/1.1 401 Unauthorized\r\n-Close-Reason: Invalid token\r\n\r\n');
       socket.destroy();
     }
   }

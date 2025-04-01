@@ -1,8 +1,12 @@
 import WebSocket from 'ws';
 import fetch from 'node-fetch';
+import config from "../config";
 
-const API_URL = 'http://localhost:3000/api/tokens';
-const WS_URL = 'ws://localhost:3001';
+const HTTP_PORT = Number(config.port) || 3000;
+const WS_PORT = Number(config.wsPort) || 3001;
+
+const API_URL = `http://localhost:${HTTP_PORT}/api/tokens`;
+const WS_URL = `ws://localhost:${WS_PORT}`;
 
 interface TokenResponse {
   token: string;
@@ -25,7 +29,7 @@ interface PingMessage extends BaseMessage {
 
 type Message = TestMessage | PingMessage;
 
-async function runTest(): Promise<void> {
+async function testValidToken(): Promise<void> {
   try {
     console.log('Getting authentication token...');
     console.log(`Making request to: ${API_URL}`);
@@ -84,7 +88,7 @@ async function runTest(): Promise<void> {
     });
     
     ws.on('close', (code: number, reason: string) => {
-      console.log(`Disconnected: Code ${code}, Reason: ${reason || 'None'}`);
+      console.log(`Disconnected: Code ${code}`);
     });
     
     process.on('SIGINT', () => {
@@ -126,7 +130,7 @@ async function testInvalidToken(): Promise<void> {
       if (code === 1006 || code === 1000) {
         console.log('Authentication working correctly: Invalid token was rejected');
       }
-      console.log(`Disconnected: Code ${code}, Reason: ${reason || 'None'}`);
+      console.log(`Disconnected: Code ${code}`);
     });
     
     setTimeout(() => {
@@ -140,13 +144,18 @@ async function testInvalidToken(): Promise<void> {
   }
 }
 
-console.log('Starting WebSocket test client...');
+async function runTests(): Promise<void> {
+  console.log('Starting WebSocket test client...');
+  console.log('\n--- TESTING INVALID TOKEN ---');
+  await testInvalidToken();
 
-testInvalidToken();
-
-setTimeout(() => {
-  runTest().catch(error => {
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  console.log('\n--- TESTING VALID TOKEN ---');
+  await testValidToken().catch(error => {
     console.error('Unhandled error:', error);
     process.exit(1);
   });
-}, 3000); 
+}
+
+runTests(); 
