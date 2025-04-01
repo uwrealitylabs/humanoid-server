@@ -1,14 +1,51 @@
 import WebSocket, { WebSocketServer } from "ws";
-
+import { TokenHandler } from "../handlers/tokens";
+import { IncomingMessage } from "http";
 export class RobotStateServer {
   private wss: WebSocketServer;
   private clients: Set<WebSocket>;
+  private tokenHandler: TokenHandler;
 
   constructor(port: number) {
-    this.wss = new WebSocketServer({ port });
+    this.wss = new WebSocketServer({ 
+      noServer: true
+     });
     this.clients = new Set();
+    this.tokenHandler = new TokenHandler();
+
+    const server = require('http').createServer();
+
+    server.on('upgrade', async(request: IncomingMessage, socket: any, head: Buffer) =>{
+      this.authenticateConnection(request, socket, head);
+    })
+
+    server.listen(port, () => {
+      console.log(`Hand teleoperation WebSocket server started on port ${port}`);
+    });
+
     this.setupWebSocketServer();
-    console.log(`Hand teleoperation WebSocket server started on port ${port}`);
+  }
+
+  private authenticateConnection(request: IncomingMessage, socket: any, head: Buffer){
+    const authHeader = request.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')){
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+
+    const token = authHeader.substring(7);
+    const isValid = this.tokenHandler.isTokenValid(token);
+    
+    if (isValid) {
+      this.wss.handleUpgrade(request, socket, head, (ws) => {
+        this.wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+    }
   }
 
   private setupWebSocketServer() {

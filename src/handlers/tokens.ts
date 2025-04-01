@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 
 export class TokenHandler {
-    private tokenMap: Map<string, Date> = new Map();
+    // Make the tokenMap static so it's shared across all instances
+    private static tokenMap: Map<string, Date> = new Map();
 
     private generateRandomString(length: number): string {
         let result = "humanoid_token_" + Math.random().toString(36).substring(2, 12);
@@ -14,7 +15,7 @@ export class TokenHandler {
             const expiryDate = new Date();
 
             expiryDate.setTime(expiryDate.getTime() + 24 * 60 * 60 * 1000);
-            this.tokenMap.set(token, expiryDate);
+            TokenHandler.tokenMap.set(token, expiryDate);
             
             res.status(201).json({ token, expiryDate });
         } catch (error){
@@ -27,7 +28,7 @@ export class TokenHandler {
             const token = req.params.token;
 
             const currentDate = new Date();
-            const expiryDate = this.tokenMap.get(token);
+            const expiryDate = TokenHandler.tokenMap.get(token);
 
             if (!expiryDate){
                 res.status(404).json({ valid: false, message: "Token not found" });
@@ -39,5 +40,11 @@ export class TokenHandler {
         } catch(error) {
             res.status(500).json({ error: "Failed to validate token."});
         }
+    }
+    public isTokenValid = (token: string): boolean => {
+        const currentDate = new Date();
+        const expiryDate = TokenHandler.tokenMap.get(token);
+        
+        return !!expiryDate && currentDate < expiryDate;
     }
 }
