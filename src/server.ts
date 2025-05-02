@@ -1,4 +1,3 @@
-// Entry point for the server
 import app from "./app";
 import config from "./config";
 import { RobotStateServer } from "./websocket/RobotStateServer";
@@ -6,10 +5,8 @@ import { createServer } from "http";
 
 const HTTP_PORT = Number(config.port) || 3000;
 
-// Create HTTP server
 const server = createServer(app);
 
-// Start HTTP server
 server.listen(HTTP_PORT, () => {
   console.log(`                                                                           
                                                                            
@@ -55,5 +52,4 @@ server.listen(HTTP_PORT, () => {
   console.log(`Server is running on port ${HTTP_PORT}`);
 });
 
-// Initialize WebSocket server
 new RobotStateServer(server);
