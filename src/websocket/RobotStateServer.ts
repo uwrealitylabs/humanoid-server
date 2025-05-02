@@ -1,14 +1,15 @@
 import WebSocket, { WebSocketServer } from "ws";
+import { Server } from "http";
 
 export class RobotStateServer {
   private wss: WebSocketServer;
   private clients: Set<WebSocket>;
 
-  constructor(port: number) {
-    this.wss = new WebSocketServer({ port });
+  constructor(server: Server) {
+    this.wss = new WebSocketServer({ server });
     this.clients = new Set();
     this.setupWebSocketServer();
-    console.log(`Hand teleoperation WebSocket server started on port ${port}`);
+    console.log("Hand teleoperation WebSocket server started");
   }
 
   private setupWebSocketServer() {
