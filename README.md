@@ -26,7 +26,6 @@ feeds, between the VR client and the robot.
 
    ```
    PORT=3000
-   WS_PORT=3001
    NODE_ENV=development
    ```
 
