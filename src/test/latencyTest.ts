@@ -49,8 +49,8 @@ class LatencyTest {
   private running: boolean = false;
 
   constructor() {
-    this.sender = new WebSocket("ws://localhost:3001");
-    this.receiver = new WebSocket("ws://localhost:3001");
+    this.sender = new WebSocket("ws://localhost:3000");
+    this.receiver = new WebSocket("ws://localhost:3000");
     this.latencies = new CircularBuffer(100);
     this.setupConnections();
   }
