@@ -6,38 +6,55 @@ import config from "../config";
 export class RobotStateServer {
   private wss: WebSocketServer;
   private clients: Set<WebSocket>;
-  private ros: ROSLIB.Ros;
+  private ros: ROSLIB.Ros | null = null;
+  private reconnectTimer?: NodeJS.Timeout | null = null;
   private topics: Record<string, ROSLIB.Topic> = {};
 
   constructor(server: Server) {
     this.wss = new WebSocketServer({ server });
     this.clients = new Set();
-    this.ros = new ROSLIB.Ros({
-      url: `${config.rosbridge_url}:${config.rosbridge_port}`
-    });
     this.setupRosbridgeConnection();
     this.setupWebSocketServer();
     console.log("Hand teleoperation WebSocket server started");
   }
 
   private setupRosbridgeConnection(){
-    this.ros.on('connection', () => {
-      console.log('Connected to Rosbridge server');
+    if(this.ros){
+      this.ros.close();
+      this.ros = null;
+    }
+
+    this.ros = new ROSLIB.Ros({
+      url: `${config.rosbridge_url}:${config.rosbridge_port}`
     });
 
-    this.ros.on('error', (error:any) => {
-      console.error('Rosbridge error ', error);
+    this.ros.on('connection', () => {
+      console.log('Connected to Rosbridge server');
+      if(this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
+    });
+
+    this.ros.on('error', (event:any) => {
+      if(event.error.code !== "ECONNREFUSED"){
+        console.error('Rosbridge error ', event.message);
+      }
     });
 
     this.ros.on('close', () => {
-      console.log('Rosbridge disconnected');
+      console.log('Rosbridge disconnected, retrying in 3s...');
+      this.reconnectTimer = setTimeout(() => (this.setupRosbridgeConnection()), 3000);
     });
 
-    this.topics["teleop"] = new ROSLIB.Topic({
-      ros: this.ros,
-      name: "teleop",
-      messageType: "sample_msgs/HandPose"
-    })
+    if(this.ros){
+      this.topics["teleop"] = new ROSLIB.Topic({
+        ros: this.ros,
+        name: "teleop",
+        messageType: "sample_msgs/HandPose"
+      })
+    }
+    
   }
 
   private setupWebSocketServer() {
