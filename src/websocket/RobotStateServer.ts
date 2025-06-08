@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from "ws";
 import { Server } from "http";
 import ROSLIB from 'roslib';
+import config from "../config";
 
 export class RobotStateServer {
   private wss: WebSocketServer;
@@ -12,7 +13,7 @@ export class RobotStateServer {
     this.wss = new WebSocketServer({ server });
     this.clients = new Set();
     this.ros = new ROSLIB.Ros({
-      url: 'ws://localhost:9090'
+      url: `${config.rosbridge_url}:${config.rosbridge_port}`
     });
     this.setupRosbridgeConnection();
     this.setupWebSocketServer();
