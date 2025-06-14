@@ -53,6 +53,10 @@ export class RobotStateServer {
         name: "teleop",
         messageType: "sample_msgs/HandPose"
       })
+
+      this.topics["teleop"].subscribe((message: any) => {
+        console.log('Received message: ' + message.data);
+      })
     }
     
   }
