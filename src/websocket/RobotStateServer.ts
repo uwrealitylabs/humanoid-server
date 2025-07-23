@@ -1,20 +1,25 @@
 import WebSocket, { WebSocketServer } from "ws";
-import { Server } from "http";
+import { createServer, Server, IncomingMessage } from 'http';
 import ROSLIB from 'roslib';
 import config from "../config";
+import { UUID } from "crypto";
+import { authHandler } from "../handlers/auth";
 
 export class RobotStateServer {
   private wss: WebSocketServer;
+  private server: Server;
   private clients: Set<WebSocket>;
   private ros: ROSLIB.Ros | null = null;
   private reconnectTimer?: NodeJS.Timeout | null = null;
   private topics: Record<string, ROSLIB.Topic> = {};
 
   constructor(server: Server) {
-    this.wss = new WebSocketServer({ server });
+    this.wss = new WebSocketServer({ noServer: true });
+    this.server = server;
     this.clients = new Set();
     this.setupRosbridgeConnection();
     this.setupWebSocketServer();
+    this.setupHttpServer();
     console.log("Hand teleoperation WebSocket server started");
   }
 
@@ -85,6 +90,38 @@ export class RobotStateServer {
         this.clients.delete(ws);
       });
     });
+  }
+
+  private setupHttpServer(){
+    this.server.on('upgrade', (request, socket, head) => {
+      socket.on('error', console.error);
+
+      // No client data being passed for now, but the field is there
+      this.authenticate(request, (err: Error | null, client: any) => {
+        if (err) {
+          console.error(err.message)
+          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+          socket.destroy();
+          return;
+        }
+
+        socket.removeListener('error', console.error);
+
+        this.wss.handleUpgrade(request, socket, head, (ws) => {
+          this.wss.emit('connection', ws, request);
+        });
+      });
+    })
+  }
+
+  private authenticate(request: IncomingMessage, next: Function){
+    const header = request.headers["pairing-token"]
+    const token = Array.isArray(header) ? header[0] : header ?? null
+    if(authHandler.isValidToken(token))
+      next(null, true)
+    else{
+      next(new Error('Invalid pairing token'), true)
+    }
   }
 
   private broadcast(data: Buffer | string, exclude?: WebSocket) {
