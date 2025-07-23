@@ -13,7 +13,7 @@ class AuthHandler {
     }
 
     public isValidToken = (token: string|null) => {
-        return token ? this.tokens.has(token) : false
+        return token ? this.tokens.has(token) && (Date.now() < this.tokens.get(token)) : false
     }
 
     public getTokenCallback = async (req: Request, res: Response) => {
