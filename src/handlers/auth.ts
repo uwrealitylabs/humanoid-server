@@ -2,17 +2,21 @@ import { Request, Response } from "express";
 import { randomUUID, UUID } from "crypto";
 import { addDays, hoursToMilliseconds } from "date-fns";
 
-export class AuthHandler {
+class AuthHandler {
     
     // Eventually store in a database, for now just put it here
     // Map between uuid and milliseconds since epoch
-    tokens: Map<UUID, Number>
+    tokens: Map<string, Number>
 
     constructor(){
-        this.tokens = new Map<UUID, Number>();
+        this.tokens = new Map<string, Number>();
     }
 
-    public getToken = async (req: Request, res: Response) => {
+    public isValidToken = (token: string|null) => {
+        return token ? this.tokens.has(token) : false
+    }
+
+    public getTokenCallback = async (req: Request, res: Response) => {
         try{
             const expiry_date = Date.now() + hoursToMilliseconds(24);
             const token = randomUUID();
@@ -24,12 +28,12 @@ export class AuthHandler {
         }
     }
 
-    public validateToken = async(req: Request, res: Response) => {
+    public validateTokenCallback = async(req: Request, res: Response) => {
         try {
             if(!Object.hasOwn(req.body, "token")){
                 res.status(412).json({error: "No pairing token provided"})
             }
-            else if(this.tokens.has(req.body.token)){
+            else if(this.isValidToken(req.body.token)){
                 res.sendStatus(200)
             }
             else {
@@ -41,3 +45,5 @@ export class AuthHandler {
         }
     }
 }
+
+export const authHandler =  new AuthHandler()

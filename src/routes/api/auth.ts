@@ -1,11 +1,10 @@
 import { Router } from "express"
-import { AuthHandler } from "../../handlers/auth"
+import { authHandler } from "../../handlers/auth";
 
 const router = Router()
-const handler = new AuthHandler();
 
-router.get('/request-token', handler.getToken);
+router.get('/request-token', authHandler.getTokenCallback);
 
-router.post('/validate-token', handler.validateToken);
+router.post('/validate-token', authHandler.validateTokenCallback);
 
 export default router;
