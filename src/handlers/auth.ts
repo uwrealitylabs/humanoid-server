@@ -6,10 +6,10 @@ class AuthHandler {
     
     // Eventually store in a database, for now just put it here
     // Map between uuid and milliseconds since epoch
-    tokens: Map<string, Number>
+    tokens: Map<string, number>
 
     constructor(){
-        this.tokens = new Map<string, Number>();
+        this.tokens = new Map<string, number>();
     }
 
     public isValidToken = (token: string|null) => {
