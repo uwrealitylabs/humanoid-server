@@ -51,11 +51,11 @@ export class RobotStateServer {
       this.topics["teleop"] = new ROSLIB.Topic({
         ros: this.ros,
         name: "teleop",
-        messageType: "sample_msgs/HandPose"
+        messageType: "sample_msgs/msg/VRHandPose"
       })
 
       this.topics["teleop"].subscribe((message: any) => {
-        console.log('Received message: ' + message.data);
+        console.log('Received message: ' + message.positions);
       })
     }
     
