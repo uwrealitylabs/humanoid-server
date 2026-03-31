@@ -2,6 +2,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import { Server } from "http";
 import ROSLIB from 'roslib';
 import config from "../config";
+import { json } from "stream/consumers";
 
 export class RobotStateServer {
   private wss: WebSocketServer;
@@ -51,10 +52,11 @@ export class RobotStateServer {
       this.topics["teleop"] = new ROSLIB.Topic({
         ros: this.ros,
         name: "teleop",
-        messageType: "sample_msgs/msg/VRHandPose"
+        messageType: "sample_msgs/VRmsg/VRHandPose"
       })
 
       this.topics["teleop"].subscribe((message: any) => {
+        console.log('Received message: ' + message.positions);
         console.log('Received message: ' + message.positions);
       })
     }
@@ -69,7 +71,8 @@ export class RobotStateServer {
       ws.on("message", (data: Buffer) => {
         try {
           const jsonData = JSON.parse(data.toString());
-          this.broadcast(JSON.stringify(jsonData), ws);
+          console.log(jsonData)
+          this.broadcast(JSON.stringify(jsonData.handData), ws);
         } catch (error) {
           console.error("Error processing JSON data:", error);
         }
@@ -95,7 +98,7 @@ export class RobotStateServer {
     });
 
     const message = new ROSLIB.Message({
-      data: JSON.parse(data.toString())
+      positions: JSON.parse(data.toString())
     });
 
     this.topics["teleop"].publish(message)

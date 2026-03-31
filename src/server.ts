@@ -8,7 +8,7 @@ const HTTP_PORT = Number(config.port) || 3000;
 
 const server = createServer(app);
 
-server.listen(HTTP_PORT, () => {
+server.listen(HTTP_PORT, "0.0.0.0", () => {
   console.log(`                                                                           
                                                                            
                                                                            
